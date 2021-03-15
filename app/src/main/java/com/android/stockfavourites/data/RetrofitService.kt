@@ -1,7 +1,7 @@
 package com.android.stockfavourites.data
 
-import com.android.stockfavourites.Models.Quote
-import com.android.stockfavourites.Models.SymbolMatch
+import com.android.stockfavourites.models.Quote
+import com.android.stockfavourites.models.SymbolLookup
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import okhttp3.OkHttpClient
@@ -13,14 +13,14 @@ import retrofit2.http.Query
 
 interface RetrofitService {
 
-    @GET("query?")
-    suspend fun getQuote(@Query("function") function: String, @Query("symbol") ticker: String, @Query("apikey") key: String): Quote
+    @GET("quote?")
+    suspend fun getQuote(@Query("symbol") ticker: String, @Query("token") key: String): Quote
 
-    @GET("query?")
-    suspend fun getSymbols(@Query("function") function: String, @Query("keywords") keywords: String, @Query("apikey") key: String): SymbolMatch
+    @GET("search?")
+    suspend fun getSymbols(@Query("q") keywords: String, @Query("token") key: String): SymbolLookup
 
     companion object{
-        private const val BASE_URL = "https://www.alphavantage.co/"
+        private const val BASE_URL = "https://finnhub.io/api/v1/"
         private val moshi: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
         private val okHttpClient = OkHttpClient.Builder().addInterceptor(

@@ -20,8 +20,10 @@ class RecyclerViewAdapter(val favouritesClick: () -> Unit) : ListAdapter<StockTa
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val stock: StockTable = getItem(position)
         holder.quote.text = stock.price
-        holder.chanePercent.text = stock.changePercent
+        holder.changePercent.text = stock.changePercent
         holder.symbol.text = stock.symbol
+        holder.companyName.text = stock.companyName
+        holder.priceChange.text = stock.change
     }
 
     public override fun getItem(position: Int): StockTable {
@@ -45,8 +47,10 @@ class RecyclerViewAdapter(val favouritesClick: () -> Unit) : ListAdapter<StockTa
     inner class ViewHolder(binding: ListItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         val quote: TextView = binding.quote
-        val chanePercent: TextView = binding.percentChange
+        val changePercent: TextView = binding.percentChange
+        val priceChange: TextView = binding.priceChange
         val symbol: TextView = binding.ticker
+        val companyName: TextView = binding.companyName
         init {
             binding.cardView.setOnClickListener {
                 favouritesClick.invoke()

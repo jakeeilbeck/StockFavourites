@@ -129,10 +129,10 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
                     val cursor = MatrixCursor(arrayOf(BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_TEXT_2))
 
                     query.let {
-                        result.bestMatches?.forEachIndexed { index, _ ->
-                            cursor.addRow(arrayOf(index, result.bestMatches[index]?.symbol, result.bestMatches[index]?.name))
+                        result.result?.forEachIndexed { index, _ ->
+                            cursor.addRow(arrayOf(index, result.result[index]?.symbol, result.result[index]?.description))
 
-                            newSymbol = result.bestMatches[index]?.symbol.toString()
+                            newSymbol = result.result[index]?.symbol.toString()
                         }
                     }
                     cursorAdapter.changeCursor(cursor)
@@ -149,10 +149,11 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
             override fun onSuggestionClick(position: Int): Boolean {
 
                 val cursor = searchView.suggestionsAdapter.getItem(position) as Cursor
-                val selection = cursor.getString(cursor.getColumnIndex(SearchManager.SUGGEST_COLUMN_TEXT_1))
+                val symbol = cursor.getString(cursor.getColumnIndex(SearchManager.SUGGEST_COLUMN_TEXT_1))
+                val companyName = cursor.getString(cursor.getColumnIndex(SearchManager.SUGGEST_COLUMN_TEXT_2))
 
                 lifecycleScope.launch {
-                    viewModel.searchStock(selection)
+                    viewModel.searchStock(symbol, companyName)
                 }
 
                 searchView.onActionViewCollapsed()

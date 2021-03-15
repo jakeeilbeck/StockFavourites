@@ -2,13 +2,12 @@ package com.android.stockfavourites.ui.main
 
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.stockfavourites.data.StockDAO
 import com.android.stockfavourites.data.StockTable
-import com.android.stockfavourites.Models.Quote
-import com.android.stockfavourites.Models.SymbolMatch
+import com.android.stockfavourites.models.Quote
+import com.android.stockfavourites.models.SymbolLookup
 import com.android.stockfavourites.data.RetrofitService
 import kotlinx.coroutines.launch
 import java.lang.Exception
@@ -17,41 +16,44 @@ class FavouritesViewmodel(private val service: RetrofitService, private val stoc
 
     private val key = "API_KEY"
 
-    fun searchStock(symbol: String){
-        val function = "GLOBAL_QUOTE"
+    fun searchStock(symbol: String, companyName: String){
         viewModelScope.launch {
             try {
-                val stock = service.getQuote(function, symbol, key)
-                if (stock.globalQuote?.symbol != null){
-                    addToFavourites(stock)
-                }
-
+                val stock = service.getQuote(symbol, key)
+                addToFavourites(symbol, companyName, stock)
             }catch(e: Exception){
                 Log.i("ViewModel", "Exception $e")
             }
         }
     }
 
-    //make a job so can cancel previous job after each character entry
-    suspend fun searchSymbol(symbol: String): SymbolMatch{
-        val function = "SYMBOL_SEARCH"
-        return service.getSymbols(function, symbol, key)
+    suspend fun searchSymbol(symbol: String): SymbolLookup {
+        return service.getSymbols(symbol, key)
     }
 
-    private fun addToFavourites(stock: Quote){
+    private fun addToFavourites(symbol: String, companyName: String, stock: Quote){
         viewModelScope.launch {
             val newStock = StockTable(
-                    stock.globalQuote!!.symbol,
-                    stock.globalQuote.open,
-                    stock.globalQuote.high,
-                    stock.globalQuote.low,
-                    stock.globalQuote.price,
-                    stock.globalQuote.previousClose,
-                    stock.globalQuote.change,
-                    stock.globalQuote.changePercent
+                    symbol,
+                    companyName,
+                    stock.o.toString(),
+                    stock.h.toString(),
+                    stock.l.toString(),
+                    stock.c.toString(),
+                    stock.pc.toString(),
+                    "%.2f".format(priceChangeCalculation(stock.pc, stock.c)),
+                    "%.2f".format(priceChangePercent(stock.pc, stock.c)) + "%"
             )
             insertFavourite(newStock)
         }
+    }
+
+    private fun priceChangeCalculation(close: Double?, current: Double?): Double?{
+            return close?.let { current?.minus(it) }
+    }
+
+    private fun priceChangePercent(close: Double?, current: Double?): Double?{
+        return ((close?.let { current?.minus(it) })?.div(close))?.times(100)
     }
 
     private fun insertFavourite(stock: StockTable){

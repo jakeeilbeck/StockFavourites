@@ -6,6 +6,7 @@ import androidx.room.*
 data class StockTable(
         @PrimaryKey
         val symbol: String,
+        val companyName: String,
         val `open`: String?,
         val high: String?,
         val low: String?,
