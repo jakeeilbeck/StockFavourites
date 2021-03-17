@@ -19,4 +19,10 @@ interface StockDAO {
 
     @Query("SELECT * FROM StockTable ORDER BY symbol ASC")
     fun getAll(): LiveData<List<StockTable>>
+
+    @Query("SELECT symbol FROM StockTable")
+    suspend fun getSymbols(): List<String>
+
+    @Update(entity = StockTable::class)
+    suspend fun updatePrices(prices: PricesUpdate)
 }

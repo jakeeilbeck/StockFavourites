@@ -1,17 +1,29 @@
 package com.android.stockfavourites.data
 
-import androidx.room.*
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
 @Entity
 data class StockTable(
         @PrimaryKey
         val symbol: String,
         val companyName: String,
-        val `open`: String?,
-        val high: String?,
-        val low: String?,
-        val price: String?,
-        val previousClose: String?,
+        val `open`: Double?,
+        val high: Double?,
+        val low: Double?,
+        val price: Double?,
+        val previousClose: Double?,
+        val change: String?,
+        val changePercent: String?
+)
+
+data class PricesUpdate(
+        val symbol: String,
+        val `open`: Double?,
+        val high: Double?,
+        val low: Double?,
+        val price: Double?,
+        val previousClose: Double?,
         val change: String?,
         val changePercent: String?
 )

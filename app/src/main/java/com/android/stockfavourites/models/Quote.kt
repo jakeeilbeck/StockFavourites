@@ -1,4 +1,5 @@
 package com.android.stockfavourites.models
+
 import com.squareup.moshi.JsonClass
 import com.squareup.moshi.Json
 

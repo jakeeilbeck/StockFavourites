@@ -10,6 +10,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
+import java.util.concurrent.TimeUnit
 
 interface RetrofitService {
 
@@ -23,11 +24,16 @@ interface RetrofitService {
         private const val BASE_URL = "https://finnhub.io/api/v1/"
         private val moshi: Moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
-        private val okHttpClient = OkHttpClient.Builder().addInterceptor(
-            HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            }
-        ).build()
+        private val logging = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
+        private val okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(logging)
+            .build()
 
         fun create(): RetrofitService {
             return Retrofit.Builder()

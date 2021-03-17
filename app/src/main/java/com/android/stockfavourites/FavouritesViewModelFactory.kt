@@ -4,17 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.android.stockfavourites.data.RetrofitService
 import com.android.stockfavourites.data.StockDAO
-import com.android.stockfavourites.ui.main.FavouritesViewmodel
+import com.android.stockfavourites.ui.main.FavouritesViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-class FavouritesViewmodelFactory(private val service: RetrofitService, private val stockDAO: StockDAO
+class FavouritesViewModelFactory(private val service: RetrofitService, private val stockDAO: StockDAO
 ) : ViewModelProvider.Factory {
 
     @ExperimentalCoroutinesApi
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(FavouritesViewmodel::class.java)) {
+        if (modelClass.isAssignableFrom(FavouritesViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return FavouritesViewmodel(service, stockDAO) as T
+            return FavouritesViewModel(service, stockDAO) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

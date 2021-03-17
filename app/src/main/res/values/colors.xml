@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#272C46</color>
-    <color name="colorPrimaryDark">#1B1F31</color>
-    <color name="colorAccent">#1667ce</color>
+    <color name="colorPrimary">#46273E</color>
+    <color name="colorPrimaryDark">#2F1B31</color>
+    <color name="colorAccent">#D3BA19</color>
     <color name="colorDivider">#65524949</color>
 
-    <color name="background">#232637</color>
-    <color name="cardBackground">#272C46</color>
+    <color name="background">#37232D</color>
+    <color name="cardBackground">#3F2746</color>
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
 
-    <color name="textHeading">#FFFFFF</color>
-    <color name="textSubHeading">#99FFFFFF</color>
-    <color name="textAdditionalInfo">#33FFFFFF</color>
+    <color name="positive">#43A047</color>
+    <color name="negative">#E53935</color>
 </resources>

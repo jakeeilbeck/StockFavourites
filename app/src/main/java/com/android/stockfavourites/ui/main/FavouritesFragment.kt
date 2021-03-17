@@ -19,7 +19,6 @@ import com.android.stockfavourites.data.StockDatabase
 import com.android.stockfavourites.databinding.FavouritesFragmentBinding
 import kotlinx.coroutines.launch
 
-
 class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
 
     companion object {
@@ -29,7 +28,7 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
     private var _binding: FavouritesFragmentBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var viewModel: FavouritesViewmodel
+    private lateinit var viewModel: FavouritesViewModel
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: RecyclerViewAdapter
     private var newSymbol: String = ""
@@ -41,15 +40,15 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
         val stockDataSource = StockDatabase.getInstance(application).stockDAO
         val viewModelFactory = Injection.provideFavouritesViewmodelFactory(stockDataSource)
 
-        viewModel = ViewModelProvider(this, viewModelFactory).get(FavouritesViewmodel::class.java)
+        viewModel = ViewModelProvider(this, viewModelFactory).get(FavouritesViewModel::class.java)
 
         setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
     ): View {
         _binding = FavouritesFragmentBinding.inflate(inflater, container, false)
         return binding.root
@@ -59,10 +58,12 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
         super.onViewCreated(view, savedInstanceState)
 
         recyclerView = binding.recyclerView
-        adapter = RecyclerViewAdapter {}
+        adapter = RecyclerViewAdapter(requireContext())
         adapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
-        //observe room database to get live updates
+        val fabRefresh = binding.fabRefresh
+
+        //Observe Room for live updates
         lifecycleScope.launch {
             viewModel.getAllFavourites().observe(viewLifecycleOwner, {
                 adapter.submitList(it)
@@ -72,27 +73,32 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
 
         //Logic for swipe to delete
         val itemTouchHelperCallback =
-                object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            object :
+                ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
 
-                    override fun onMove(
-                            recyclerView: RecyclerView,
-                            viewHolder: RecyclerView.ViewHolder,
-                            target: RecyclerView.ViewHolder
-                    ): Boolean {
-
-                        return false
-                    }
-
-                    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                        viewModel.deleteStock(adapter.getItem(viewHolder.layoutPosition))
-                    }
-
+                override fun onMove(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    target: RecyclerView.ViewHolder
+                ): Boolean {
+                    return false
                 }
+
+                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                    viewModel.deleteStock(adapter.getItem(viewHolder.layoutPosition))
+                }
+            }
+
+        //For swipe to delete
         val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
         itemTouchHelper.attachToRecyclerView(recyclerView)
+
+        fabRefresh.setOnClickListener {
+            viewModel.updateAll()
+        }
     }
 
-    //Logic for search autocomplete
+    //App bar search autocomplete
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
 
@@ -102,21 +108,22 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
         val menuItem = menu.findItem(R.id.action_search)
         val searchView = menuItem.actionView as androidx.appcompat.widget.SearchView
 
-        searchView.queryHint = "Search ticker"
+        searchView.queryHint = "Search symbol"
 
         //Search autocomplete logic
         val cursorAdapter = SimpleCursorAdapter(
-                this.requireContext(),
-                R.layout.autocomplete_item,
-                null,
-                arrayOf(SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_TEXT_2),
-                intArrayOf(R.id.symbol, R.id.company_name),
-                CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER
+            this.requireContext(),
+            R.layout.autocomplete_item,
+            null,
+            arrayOf(SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_TEXT_2),
+            intArrayOf(R.id.symbol, R.id.company_name),
+            CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER
         )
 
         searchView.suggestionsAdapter = cursorAdapter
 
-        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+        searchView.setOnQueryTextListener(object :
+            androidx.appcompat.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 return false
             }
@@ -125,23 +132,40 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
             override fun onQueryTextChange(query: String): Boolean {
 
                 lifecycleScope.launch {
-                    val result = viewModel.searchSymbol(query)
-                    val cursor = MatrixCursor(arrayOf(BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1, SearchManager.SUGGEST_COLUMN_TEXT_2))
 
-                    query.let {
-                        result.result?.forEachIndexed { index, _ ->
-                            cursor.addRow(arrayOf(index, result.result[index]?.symbol, result.result[index]?.description))
+                    if (query.isNotEmpty()) {
+                        val result = viewModel.searchSymbol(query)
 
-                            newSymbol = result.result[index]?.symbol.toString()
+                        val cursor = MatrixCursor(
+                            arrayOf(
+                                BaseColumns._ID,
+                                SearchManager.SUGGEST_COLUMN_TEXT_1,
+                                SearchManager.SUGGEST_COLUMN_TEXT_2
+                            )
+                        )
+
+                        query.let {
+                            result.result?.forEachIndexed { index, _ ->
+                                cursor.addRow(
+                                    arrayOf(
+                                        index,
+                                        result.result[index]?.symbol,
+                                        result.result[index]?.description
+                                    )
+                                )
+
+                                newSymbol = result.result[index]?.symbol.toString()
+                            }
                         }
+                        cursorAdapter.changeCursor(cursor)
                     }
-                    cursorAdapter.changeCursor(cursor)
                 }
                 return true
             }
         })
 
-        searchView.setOnSuggestionListener(object : androidx.appcompat.widget.SearchView.OnSuggestionListener {
+        searchView.setOnSuggestionListener(object :
+            androidx.appcompat.widget.SearchView.OnSuggestionListener {
             override fun onSuggestionSelect(position: Int): Boolean {
                 return false
             }
@@ -152,9 +176,7 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
                 val symbol = cursor.getString(cursor.getColumnIndex(SearchManager.SUGGEST_COLUMN_TEXT_1))
                 val companyName = cursor.getString(cursor.getColumnIndex(SearchManager.SUGGEST_COLUMN_TEXT_2))
 
-                lifecycleScope.launch {
-                    viewModel.searchStock(symbol, companyName)
-                }
+                viewModel.searchStock(symbol, companyName)
 
                 searchView.onActionViewCollapsed()
 

@@ -6,6 +6,6 @@ import com.android.stockfavourites.data.StockDAO
 
 object Injection {
     fun provideFavouritesViewmodelFactory(stockDAO: StockDAO): ViewModelProvider.Factory{
-        return FavouritesViewmodelFactory(RetrofitService.create(), stockDAO)
+        return FavouritesViewModelFactory(RetrofitService.create(), stockDAO)
     }
 }
