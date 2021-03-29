@@ -3,9 +3,15 @@ package com.android.stockfavourites.ui.main
 import android.app.SearchManager
 import android.database.Cursor
 import android.database.MatrixCursor
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.provider.BaseColumns
 import android.view.*
+import androidx.core.content.ContextCompat
 import androidx.cursoradapter.widget.CursorAdapter
 import androidx.cursoradapter.widget.SimpleCursorAdapter
 import androidx.fragment.app.Fragment
@@ -75,6 +81,49 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
         val itemTouchHelperCallback =
             object :
                 ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+
+                private val background = ColorDrawable()
+                private val backgroundColor = ContextCompat.getColor(requireContext(), R.color.negative)
+                private val clearPaint = Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR) }
+
+                //https://medium.com/@kitek/recyclerview-swipe-to-delete-easier-than-you-thought-cff67ff5e5f6
+                //Red background when swiping to delete items
+                override fun onChildDraw(
+                    c: Canvas,
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    dX: Float,
+                    dY: Float,
+                    actionState: Int,
+                    isCurrentlyActive: Boolean
+                ) {
+
+                    val itemView = viewHolder.itemView
+                    val isCanceled = dX == 0f && !isCurrentlyActive
+
+                    if (isCanceled) {
+                        clearCanvas(c, itemView.right + dX, itemView.top.toFloat(), itemView.right.toFloat(), itemView.bottom.toFloat())
+                        super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                        return
+                    }
+
+                    // Draw the red delete background
+                    background.color = backgroundColor
+                    background.setBounds(
+                        itemView.left,
+                        itemView.top,
+                        itemView.right,
+                        itemView.bottom
+                    )
+                    background.draw(c)
+
+                    super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+                }
+
+                //Remove the red background if item is released
+                private fun clearCanvas(c: Canvas?, left: Float, top: Float, right: Float, bottom: Float) {
+                    c?.drawRect(left, top, right, bottom, clearPaint)
+                }
 
                 override fun onMove(
                     recyclerView: RecyclerView,
