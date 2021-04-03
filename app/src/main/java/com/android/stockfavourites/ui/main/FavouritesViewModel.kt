@@ -2,6 +2,7 @@ package com.android.stockfavourites.ui.main
 
 import android.util.Log
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.stockfavourites.data.PricesUpdate
@@ -17,20 +18,32 @@ class FavouritesViewModel(private val service: RetrofitService, private val stoc
 
     private val key = "API_KEY"
 
+    //LiveData observed by fragment for notifications when update is complete and errors occur
+    var refreshStatus = MutableLiveData(false)
+    var errorType = MutableLiveData("")
+
     fun searchStock(symbol: String, companyName: String) {
         viewModelScope.launch {
             try {
                 val stock = service.getQuote(symbol, key)
                 addToFavourites(symbol, companyName, stock)
             } catch (e: Exception) {
-                Log.i("ViewModel.searchStock", "Exception $e")
+                errorType.value = "Error searching stock"
+                errorType.value = ""
+                Log.i("ViewModel.searchStock", "Exception: $e")
             }
         }
     }
 
-    suspend fun searchSymbol(symbol: String): SymbolLookup {
-        return service.getSymbols(symbol, key)
-    }
+    suspend fun searchSymbol(symbol: String): SymbolLookup? =
+        try {
+            service.getSymbols(symbol, key)
+        } catch (e: Exception){
+            errorType.value = "Error searching symbols"
+            errorType.value = ""
+            Log.i("ViewModel.searchSymbol", "Exception: $e")
+            null
+        }
 
     private fun addToFavourites(symbol: String, companyName: String, stock: Quote) {
         viewModelScope.launch {
@@ -93,19 +106,27 @@ class FavouritesViewModel(private val service: RetrofitService, private val stoc
 
     fun updateAll() {
         viewModelScope.launch {
-            for (symbol in stockDAO.getSymbols()) {
-                val stock = service.getQuote(symbol, key)
-                val update = PricesUpdate(
-                    symbol,
-                    stock.o,
-                    stock.h,
-                    stock.l,
-                    stock.c,
-                    stock.pc,
-                    formatDecimalPlaces(priceChangeCalculation(stock.pc, stock.c)),
-                    formatDecimalPlaces(priceChangePercentCalculation(stock.pc, stock.c)) + "%"
-                )
-                stockDAO.updatePrices(update)
+            try {
+                for (symbol in stockDAO.getSymbols()) {
+                    val stock = service.getQuote(symbol, key)
+                    val update = PricesUpdate(
+                        symbol,
+                        stock.o,
+                        stock.h,
+                        stock.l,
+                        stock.c,
+                        stock.pc,
+                        formatDecimalPlaces(priceChangeCalculation(stock.pc, stock.c)),
+                        formatDecimalPlaces(priceChangePercentCalculation(stock.pc, stock.c)) + "%"
+                    )
+                    stockDAO.updatePrices(update)
+                }
+                refreshStatus.value = true
+                refreshStatus.value = false
+            }catch (e: Exception){
+                errorType.value = "Error updating stocks"
+                errorType.value = ""
+                Log.i("ViewModel.updateAll", "Exception: $e")
             }
         }
     }

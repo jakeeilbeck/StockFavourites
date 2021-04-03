@@ -11,6 +11,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.provider.BaseColumns
 import android.view.*
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.cursoradapter.widget.CursorAdapter
 import androidx.cursoradapter.widget.SimpleCursorAdapter
@@ -145,6 +146,14 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
         fabRefresh.setOnClickListener {
             viewModel.updateAll()
         }
+
+        viewModel.refreshStatus.observe(viewLifecycleOwner, {
+            if(it == true) Toast.makeText(requireContext(),"Stocks updated", Toast.LENGTH_SHORT).show()
+        })
+
+        viewModel.errorType.observe(viewLifecycleOwner, {
+            if (it != "") Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+        })
     }
 
     //App bar search autocomplete
@@ -194,7 +203,7 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
                         )
 
                         query.let {
-                            result.result?.forEachIndexed { index, _ ->
+                            result?.result?.forEachIndexed { index, _ ->
                                 cursor.addRow(
                                     arrayOf(
                                         index,
