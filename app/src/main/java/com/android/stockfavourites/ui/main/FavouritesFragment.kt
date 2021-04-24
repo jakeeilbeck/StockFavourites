@@ -138,15 +138,22 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
 
         fabRefresh.setOnClickListener {
             viewModel.updateAllFavourites()
+            binding.fabRefresh.visibility = View.GONE
+            binding.updateAllProgressBar.visibility = View.VISIBLE
         }
 
         viewModel.refreshStatus.observe(viewLifecycleOwner, {
-            if(it == true) Toast.makeText(requireContext(),"Stocks updated", Toast.LENGTH_SHORT).show()
+            if(it == true) {
+                Toast.makeText(requireContext(),"Stocks updated", Toast.LENGTH_SHORT).show()
+                binding.fabRefresh.visibility = View.VISIBLE
+                binding.updateAllProgressBar.visibility = View.GONE
+            }
         })
 
         viewModel.errorType.observe(viewLifecycleOwner, {
             if (it != "") Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
         })
+
     }
 
     //App bar search autocomplete
