@@ -16,16 +16,17 @@ import androidx.core.content.ContextCompat
 import androidx.cursoradapter.widget.CursorAdapter
 import androidx.cursoradapter.widget.SimpleCursorAdapter
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.android.stockfavourites.Injection
 import com.android.stockfavourites.R
-import com.android.stockfavourites.data.StockDatabase
 import com.android.stockfavourites.databinding.FavouritesFragmentBinding
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
 
     companion object {
@@ -35,20 +36,13 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
     private var _binding: FavouritesFragmentBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var viewModel: FavouritesViewModel
+    private val viewModel: FavouritesViewModel by viewModels()
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: RecyclerViewAdapter
+    @Inject lateinit var adapter: RecyclerViewAdapter
     private var newSymbol: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val application = requireNotNull(this.activity).application
-        val stockDataSource = StockDatabase.getInstance(application).stockDAO
-        val viewModelFactory = Injection.provideFavouritesViewmodelFactory(stockDataSource)
-
-        viewModel = ViewModelProvider(this, viewModelFactory).get(FavouritesViewModel::class.java)
-
         setHasOptionsMenu(true)
     }
 
@@ -65,7 +59,6 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
         super.onViewCreated(view, savedInstanceState)
 
         recyclerView = binding.recyclerView
-        adapter = RecyclerViewAdapter(requireContext())
         adapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         val fabRefresh = binding.fabRefresh
@@ -144,7 +137,7 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
         itemTouchHelper.attachToRecyclerView(recyclerView)
 
         fabRefresh.setOnClickListener {
-            viewModel.updateAll()
+            viewModel.updateAllFavourites()
         }
 
         viewModel.refreshStatus.observe(viewLifecycleOwner, {
@@ -234,7 +227,7 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
                 val symbol = cursor.getString(cursor.getColumnIndex(SearchManager.SUGGEST_COLUMN_TEXT_1))
                 val companyName = cursor.getString(cursor.getColumnIndex(SearchManager.SUGGEST_COLUMN_TEXT_2))
 
-                viewModel.searchStock(symbol, companyName)
+                viewModel.getStock(symbol, companyName)
 
                 searchView.onActionViewCollapsed()
 

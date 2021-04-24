@@ -9,10 +9,11 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.android.stockfavourites.R
-import com.android.stockfavourites.data.StockTable
+import com.android.stockfavourites.data.local.StockTable
 import com.android.stockfavourites.databinding.ListItemBinding
+import javax.inject.Inject
 
-class RecyclerViewAdapter(private val context: Context) :
+class RecyclerViewAdapter @Inject constructor(private val context: Context) :
     ListAdapter<StockTable, RecyclerViewAdapter.ViewHolder>(diffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

@@ -1,4 +1,4 @@
-package com.android.stockfavourites.data
+package com.android.stockfavourites.data.local
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
