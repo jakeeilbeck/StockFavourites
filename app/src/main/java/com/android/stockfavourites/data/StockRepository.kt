@@ -1,6 +1,7 @@
 package com.android.stockfavourites.data
 
 import androidx.lifecycle.LiveData
+import com.android.stockfavourites.BuildConfig
 import com.android.stockfavourites.data.local.PricesUpdate
 import com.android.stockfavourites.data.local.StockDAO
 import com.android.stockfavourites.data.local.StockTable
@@ -16,7 +17,7 @@ class StockRepository @Inject constructor(
     private val stockDAO: StockDAO
 ) {
 
-    private val key = "c17rnj748v6sj55b58n0"
+    private val key = BuildConfig.API_KEY
 
     //Get stock details once autocomplete item selected
     suspend fun getStock(symbol: String, companyName: String) {
