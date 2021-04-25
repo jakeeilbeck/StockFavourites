@@ -5,6 +5,7 @@ The project includes:
 * Kotlin
 * Coroutines
 * Room
+* Hilt for DI
 * Retrofit2
 * Moshi
 * RecyclerView
