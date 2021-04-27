@@ -152,6 +152,8 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
 
         viewModel.errorType.observe(viewLifecycleOwner, {
             if (it != "") Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+            binding.fabRefresh.visibility = View.VISIBLE
+            binding.updateAllProgressBar.visibility = View.GONE
         })
 
     }
