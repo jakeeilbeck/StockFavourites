@@ -17,6 +17,7 @@ import androidx.cursoradapter.widget.CursorAdapter
 import androidx.cursoradapter.widget.SimpleCursorAdapter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -65,7 +66,7 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
 
         //Observe Room for live updates
         lifecycleScope.launch {
-            viewModel.getAllFavourites().observe(viewLifecycleOwner, {
+            viewModel.getAllFavourites().observe(viewLifecycleOwner, Observer {
                 adapter.submitList(it)
             })
         }
@@ -142,7 +143,7 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
             binding.updateAllProgressBar.visibility = View.VISIBLE
         }
 
-        viewModel.refreshStatus.observe(viewLifecycleOwner, {
+        viewModel.refreshStatus.observe(viewLifecycleOwner, Observer {
             if(it == true) {
                 Toast.makeText(requireContext(),"Stocks updated", Toast.LENGTH_SHORT).show()
                 binding.fabRefresh.visibility = View.VISIBLE
@@ -150,7 +151,7 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
             }
         })
 
-        viewModel.errorType.observe(viewLifecycleOwner, {
+        viewModel.errorType.observe(viewLifecycleOwner, Observer {
             if (it != "") Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
             binding.fabRefresh.visibility = View.VISIBLE
             binding.updateAllProgressBar.visibility = View.GONE
