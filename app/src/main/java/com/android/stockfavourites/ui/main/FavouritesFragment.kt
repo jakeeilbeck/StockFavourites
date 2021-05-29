@@ -24,6 +24,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.android.stockfavourites.R
 import com.android.stockfavourites.databinding.FavouritesFragmentBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -139,24 +141,32 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
 
         fabRefresh.setOnClickListener {
             viewModel.updateAllFavourites()
-            binding.fabRefresh.visibility = View.GONE
-            binding.updateAllProgressBar.visibility = View.VISIBLE
         }
 
-        viewModel.refreshStatus.observe(viewLifecycleOwner, Observer {
-            if(it == true) {
-                Toast.makeText(requireContext(),"Stocks updated", Toast.LENGTH_SHORT).show()
-                binding.fabRefresh.visibility = View.VISIBLE
-                binding.updateAllProgressBar.visibility = View.GONE
-            }
-        })
+        //Receive loading status updates
+        viewModel.loadingFlow.onEach {
+             toggleRefresh(it)
+        }.launchIn(viewLifecycleOwner.lifecycleScope)
 
-        viewModel.errorType.observe(viewLifecycleOwner, Observer {
-            if (it != "") Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+        //Receive error updates
+        viewModel.errorFlow.onEach {
+            showToast(it)
+        }.launchIn(viewLifecycleOwner.lifecycleScope)
+    }
+
+    private fun showToast(message: String){
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+    }
+
+    //Hide/show fab or refresh button
+    private fun toggleRefresh(isLoading: Boolean){
+        if(isLoading){
+            binding.fabRefresh.visibility = View.GONE
+            binding.updateAllProgressBar.visibility = View.VISIBLE
+        }else{
             binding.fabRefresh.visibility = View.VISIBLE
             binding.updateAllProgressBar.visibility = View.GONE
-        })
-
+        }
     }
 
     //App bar search autocomplete

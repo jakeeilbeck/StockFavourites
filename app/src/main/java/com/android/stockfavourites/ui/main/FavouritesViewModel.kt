@@ -2,7 +2,6 @@ package com.android.stockfavourites.ui.main
 
 import android.util.Log
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.stockfavourites.data.*
@@ -10,15 +9,22 @@ import com.android.stockfavourites.data.local.StockTable
 import com.android.stockfavourites.models.SymbolLookup
 import kotlinx.coroutines.launch
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class FavouritesViewModel @Inject constructor (private val repository: StockRepository) :
     ViewModel() {
 
-    //LiveData observed by fragment for notifications when update is complete and errors occur
-    var refreshStatus = MutableLiveData(false)
-    var errorType = MutableLiveData("")
+    val errorFlow = MutableSharedFlow<String>(0)
+    val loadingFlow = MutableStateFlow(false)
+
+    private fun setLoadingStatus(isLoading: Boolean){
+        viewModelScope.launch {
+            loadingFlow.emit(isLoading)
+        }
+    }
 
     //Get stock details once autocomplete item selected
     fun getStock(symbol: String, companyName: String) {
@@ -26,8 +32,7 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
             try {
                 repository.getStock(symbol, companyName)
             } catch (e: Exception) {
-                errorType.value = "Error searching stock"
-                errorType.value = ""
+                errorFlow.emit("Error searching stock")
                 Log.i("ViewModel.searchStock", "Exception: $e")
             }
         }
@@ -38,8 +43,7 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
         try {
             repository.searchSymbol(symbol)
         } catch (e: Exception){
-            errorType.value = "Error searching symbols"
-            errorType.value = ""
+            errorFlow.emit("Error searching symbols")
             Log.i("ViewModel.searchSymbol", "Exception: $e")
             null
         }
@@ -57,12 +61,13 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
     fun updateAllFavourites() {
         viewModelScope.launch {
             try {
+                setLoadingStatus(true)
                 repository.updateAllFavourites()
-                refreshStatus.value = true
-                refreshStatus.value = false
+                setLoadingStatus(false)
+                errorFlow.emit("Stocks updated")
             }catch (e: Exception){
-                errorType.value = "Error updating stocks"
-                errorType.value = ""
+                setLoadingStatus(false)
+                errorFlow.emit("Error updating stocks")
                 Log.i("ViewModel.updateAll", "Exception: $e")
             }
         }
