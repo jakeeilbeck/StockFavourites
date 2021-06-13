@@ -35,6 +35,7 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
         viewModelScope.launch {
             try {
                 repository.getStock(symbol, companyName)
+                insertDailyCandle(symbol)
             } catch (e: Exception) {
                 errorFlow.emit("Error searching stock")
                 Log.i("ViewModel.searchStock", "Exception: $e")
@@ -67,6 +68,7 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
             try {
                 setLoadingStatus(true)
                 repository.updateAllFavourites()
+                updateDailyCandles()
                 setLoadingStatus(false)
                 errorFlow.emit("Stocks updated")
             }catch (e: Exception){
@@ -78,7 +80,7 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
     }
 
     //Get data for graphs - data points in 5 minute intervals
-    suspend fun updateDailyCandles() {
+    private suspend fun updateDailyCandles() {
         //API requires Unix time, so here we get the Unix time at the start and end of day
         //If it is the weekend we get Friday timestamps
 
