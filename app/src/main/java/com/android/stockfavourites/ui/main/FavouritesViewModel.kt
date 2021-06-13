@@ -5,12 +5,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.stockfavourites.data.*
+import com.android.stockfavourites.data.local.CandleTable
+import com.android.stockfavourites.data.local.StockAndCandle
 import com.android.stockfavourites.data.local.StockTable
 import com.android.stockfavourites.models.SymbolLookup
 import kotlinx.coroutines.launch
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.time.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -19,6 +22,7 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
 
     val errorFlow = MutableSharedFlow<String>(0)
     val loadingFlow = MutableStateFlow(false)
+    private val secondsInDay = 86400
 
     private fun setLoadingStatus(isLoading: Boolean){
         viewModelScope.launch {
@@ -72,4 +76,71 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
             }
         }
     }
+
+    //Get data for graphs - data points in 5 minute intervals
+    suspend fun updateDailyCandles() {
+        //API requires Unix time, so here we get the Unix time at the start and end of day
+        //If it is the weekend we get Friday timestamps
+
+        var dayStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).toEpochSecond(ZoneOffset.UTC)
+        var dayEnd = LocalDateTime.of(LocalDate.now(), LocalTime.MAX).toEpochSecond(ZoneOffset.UTC)
+        val day = LocalDate.now().dayOfWeek
+        val resolution = "5"
+
+        if (day == DayOfWeek.SATURDAY){
+            dayStart -= secondsInDay
+            dayEnd -= secondsInDay
+        }else if(day == DayOfWeek.SUNDAY){
+            dayStart -= (secondsInDay * 2)
+            dayEnd -= (secondsInDay * 2)
+        }
+
+        for (symbol in repository.getSymbols()) {
+            val candleData = repository.getCandles(symbol, resolution, dayStart.toString(), dayEnd.toString())
+            if (candleData.s.equals("ok")){
+                val stock = CandleTable(
+                    symbol,
+                    candleData.c
+                )
+                stockDAO.insertCandleData(stock)
+            }
+        }
+    }
+
+
+
+    private suspend fun insertDailyCandle(symbol: String){
+        var dayStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).toEpochSecond(ZoneOffset.UTC)
+        var dayEnd = LocalDateTime.of(LocalDate.now(), LocalTime.MAX).toEpochSecond(ZoneOffset.UTC)
+        val day = LocalDate.now().dayOfWeek
+        val resolution = "5"
+
+        if (day == DayOfWeek.SATURDAY){
+            dayStart -= secondsInDay
+            dayEnd -= secondsInDay
+        }else if(day == DayOfWeek.SUNDAY){
+            dayStart -= (secondsInDay * 2)
+            dayEnd -= (secondsInDay * 2)
+        }
+
+        val candleData = service.getCandles(symbol, resolution, dayStart.toString(), dayEnd.toString(), key)
+
+        if (candleData.s.equals("ok")) {
+            val stock = CandleTable(
+                symbol,
+                candleData.c
+            )
+//            if (!checkExists(stock.symbol)) {
+            stockDAO.insertCandleData(stock)
+//            } else {
+//                stockDAO.updateCandleData(stock)
+//            }
+        }
+    }
+
+
+    fun getAllStockAndCandle(): LiveData<List<StockAndCandle>>{
+        return stockDAO.getStockAndCandleData()
+    }
+
 }

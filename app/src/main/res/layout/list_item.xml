@@ -39,6 +39,14 @@
             Tools:layout_constraintTop_toBottomOf="@+id/ticker"
             tools:text="Company Name" />
 
+        <com.robinhood.spark.SparkView
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            Tools:layout_constraintBottom_toBottomOf="parent"
+            Tools:layout_constraintEnd_toEndOf="parent"
+            Tools:layout_constraintStart_toStartOf="parent"
+            Tools:layout_constraintTop_toTopOf="parent"/>
+
         <TextView
             android:id="@+id/quote"
             android:layout_width="wrap_content"

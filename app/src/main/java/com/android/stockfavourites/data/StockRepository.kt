@@ -6,6 +6,7 @@ import com.android.stockfavourites.data.local.PricesUpdate
 import com.android.stockfavourites.data.local.StockDAO
 import com.android.stockfavourites.data.local.StockTable
 import com.android.stockfavourites.data.remote.StockApi
+import com.android.stockfavourites.models.CandleData
 import com.android.stockfavourites.models.Quote
 import com.android.stockfavourites.models.SymbolLookup
 import javax.inject.Inject
@@ -29,6 +30,11 @@ class StockRepository @Inject constructor(
     suspend fun searchSymbol(symbol: String): SymbolLookup {
         return stockApi.getSymbols(symbol, key)
     }
+
+    suspend fun getCandles(symbol: String, resolution: String, dayStart: String, dayEnd: String): CandleData{
+        return stockApi.getCandles(symbol, resolution, dayStart, dayEnd, key)
+    }
+
 
     private suspend fun addToFavourites(symbol: String, companyName: String, stock: Quote) {
         val newStock = StockTable(
@@ -96,5 +102,9 @@ class StockRepository @Inject constructor(
             )
             stockDAO.updatePrices(update)
         }
+    }
+
+    suspend fun getSymbols(): List<String>{
+        return stockDAO.getSymbols()
     }
 }

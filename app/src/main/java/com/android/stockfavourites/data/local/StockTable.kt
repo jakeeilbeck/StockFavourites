@@ -1,7 +1,6 @@
 package com.android.stockfavourites.data.local
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import androidx.room.*
 
 @Entity
 data class StockTable(
@@ -26,4 +25,20 @@ data class PricesUpdate(
         val previousClose: Double?,
         val change: String?,
         val changePercent: String?
+)
+
+@Entity
+data class CandleTable (
+        @PrimaryKey
+        val symbol: String,
+        @TypeConverters(CandleTypeConverters::class)
+        val candleClose: List<Double?>?
+)
+
+
+data class StockAndCandle(
+        @Embedded
+        val stockTable: StockTable,
+        @Relation(parentColumn = "symbol", entityColumn = "symbol")
+        val candleTable: CandleTable?
 )
