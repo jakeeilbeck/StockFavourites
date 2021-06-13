@@ -2,9 +2,7 @@ package com.android.stockfavourites.data
 
 import androidx.lifecycle.LiveData
 import com.android.stockfavourites.BuildConfig
-import com.android.stockfavourites.data.local.PricesUpdate
-import com.android.stockfavourites.data.local.StockDAO
-import com.android.stockfavourites.data.local.StockTable
+import com.android.stockfavourites.data.local.*
 import com.android.stockfavourites.data.remote.StockApi
 import com.android.stockfavourites.models.CandleData
 import com.android.stockfavourites.models.Quote
@@ -106,5 +104,13 @@ class StockRepository @Inject constructor(
 
     suspend fun getSymbols(): List<String>{
         return stockDAO.getSymbols()
+    }
+
+    suspend fun insertCandleData(stock: CandleTable){
+        stockDAO.insertCandleData(stock)
+    }
+
+    fun getStockAndCandleData(): LiveData<List<StockAndCandle>>{
+        return stockDAO.getStockAndCandleData()
     }
 }

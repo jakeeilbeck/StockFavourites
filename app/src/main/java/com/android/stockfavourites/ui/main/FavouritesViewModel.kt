@@ -102,12 +102,10 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
                     symbol,
                     candleData.c
                 )
-                stockDAO.insertCandleData(stock)
+                repository.insertCandleData(stock)
             }
         }
     }
-
-
 
     private suspend fun insertDailyCandle(symbol: String){
         var dayStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).toEpochSecond(ZoneOffset.UTC)
@@ -123,24 +121,18 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
             dayEnd -= (secondsInDay * 2)
         }
 
-        val candleData = service.getCandles(symbol, resolution, dayStart.toString(), dayEnd.toString(), key)
+        val candleData = repository.getCandles(symbol, resolution, dayStart.toString(), dayEnd.toString())
 
         if (candleData.s.equals("ok")) {
             val stock = CandleTable(
                 symbol,
                 candleData.c
             )
-//            if (!checkExists(stock.symbol)) {
-            stockDAO.insertCandleData(stock)
-//            } else {
-//                stockDAO.updateCandleData(stock)
-//            }
+            repository.insertCandleData(stock)
         }
     }
 
-
     fun getAllStockAndCandle(): LiveData<List<StockAndCandle>>{
-        return stockDAO.getStockAndCandleData()
+        return repository.getStockAndCandleData()
     }
-
 }

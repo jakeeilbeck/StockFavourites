@@ -25,4 +25,23 @@ interface StockDAO {
 
     @Update(entity = StockTable::class)
     suspend fun updatePrices(prices: PricesUpdate)
+
+    @Transaction
+    @Query("SELECT * FROM  StockTable ORDER BY symbol ASC")
+    fun getStockAndCandleData(): LiveData<List<StockAndCandle>>
+
+    @Insert
+    suspend fun insertCandleData(candleData: CandleTable)
+
+    @Update(entity = CandleTable::class)
+    suspend fun updateCandleData(candleData: CandleTable)
+
+    @Delete
+    suspend fun deleteCandleData(candleData: CandleTable)
+
+    @Query("SELECT * FROM CandleTable WHERE symbol = :symbol")
+    fun getCandleData(symbol: String): LiveData<List<CandleTable>>
+
+    @Query("SELECT * FROM CandleTable WHERE symbol = :symbol")
+    fun getCandleDataX(symbol: String): LiveData<CandleTable>
 }
