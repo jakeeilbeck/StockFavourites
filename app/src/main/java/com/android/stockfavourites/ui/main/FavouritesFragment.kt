@@ -17,7 +17,6 @@ import androidx.cursoradapter.widget.CursorAdapter
 import androidx.cursoradapter.widget.SimpleCursorAdapter
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -68,7 +67,7 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
 
         //Observe Room for live updates
         lifecycleScope.launch {
-            viewModel.getAllFavourites().observe(viewLifecycleOwner, Observer {
+            viewModel.getAllStockAndCandle().observe(viewLifecycleOwner, {
                 adapter.submitList(it)
             })
         }
@@ -131,7 +130,8 @@ class FavouritesFragment : Fragment(R.layout.favourites_fragment) {
                 }
 
                 override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                    viewModel.deleteStock(adapter.getItem(viewHolder.layoutPosition))
+                    viewModel.deleteStock(adapter.getItem(viewHolder.layoutPosition).stockTable)
+                    viewModel.deleteCandle(adapter.getItem(viewHolder.layoutPosition).candleTable)
                 }
             }
 

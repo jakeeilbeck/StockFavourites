@@ -35,7 +35,6 @@ data class CandleTable (
         val candleClose: List<Double?>?
 )
 
-
 data class StockAndCandle(
         @Embedded
         val stockTable: StockTable,

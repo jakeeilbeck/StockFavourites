@@ -59,8 +59,16 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
         }
     }
 
-    fun getAllFavourites(): LiveData<List<StockTable>> {
-        return repository.getAllFavourites()
+    fun deleteCandle(quote: CandleTable?) {
+        viewModelScope.launch {
+            if (quote != null) {
+                repository.deleteCandle(quote)
+            }
+        }
+    }
+
+    fun getAllStockAndCandle(): LiveData<List<StockAndCandle>>{
+        return repository.getStockAndCandleData()
     }
 
     fun updateAllFavourites() {
@@ -81,10 +89,13 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
 
     //Get data for graphs - data points in 5 minute intervals
     private suspend fun updateDailyCandles() {
-        //API requires Unix time, so here we get the Unix time at the start and end of day
-        //If it is the weekend we get Friday timestamps
+        /*
+        API requires Unix time, so here we get the Unix time at the start of trading day and end
+        of day. If it is the weekend we get Friday timestamps.
+        48600 is the amount of seconds from day start to start of trading
+        */
 
-        var dayStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).toEpochSecond(ZoneOffset.UTC)
+        var dayStart = LocalDateTime.of(LocalDate.now(), LocalTime.MIN).toEpochSecond(ZoneOffset.UTC) + 48600
         var dayEnd = LocalDateTime.of(LocalDate.now(), LocalTime.MAX).toEpochSecond(ZoneOffset.UTC)
         val day = LocalDate.now().dayOfWeek
         val resolution = "5"
@@ -97,16 +108,7 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
             dayEnd -= (secondsInDay * 2)
         }
 
-        for (symbol in repository.getSymbols()) {
-            val candleData = repository.getCandles(symbol, resolution, dayStart.toString(), dayEnd.toString())
-            if (candleData.s.equals("ok")){
-                val stock = CandleTable(
-                    symbol,
-                    candleData.c
-                )
-                repository.insertCandleData(stock)
-            }
-        }
+        repository.updateCandleData(resolution, dayStart.toString(), dayEnd.toString())
     }
 
     private suspend fun insertDailyCandle(symbol: String){
@@ -132,9 +134,5 @@ class FavouritesViewModel @Inject constructor (private val repository: StockRepo
             )
             repository.insertCandleData(stock)
         }
-    }
-
-    fun getAllStockAndCandle(): LiveData<List<StockAndCandle>>{
-        return repository.getStockAndCandleData()
     }
 }

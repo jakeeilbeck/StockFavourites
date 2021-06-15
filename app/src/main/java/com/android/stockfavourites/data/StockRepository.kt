@@ -33,7 +33,6 @@ class StockRepository @Inject constructor(
         return stockApi.getCandles(symbol, resolution, dayStart, dayEnd, key)
     }
 
-
     private suspend fun addToFavourites(symbol: String, companyName: String, stock: Quote) {
         val newStock = StockTable(
             symbol,
@@ -74,15 +73,19 @@ class StockRepository @Inject constructor(
     }
 
     suspend fun deleteFavourite(quote: StockTable) {
-        stockDAO.delete(quote)
+        stockDAO.deleteStock(quote)
+    }
+
+    suspend fun deleteCandle(quote: CandleTable) {
+        stockDAO.deleteCandle(quote)
     }
 
     private suspend fun checkIfCurrentFavourite(symbol: String?): Boolean {
         return stockDAO.checkExists(symbol) == 1
     }
 
-    fun getAllFavourites(): LiveData<List<StockTable>> {
-        return stockDAO.getAll()
+    fun getStockAndCandleData(): LiveData<List<StockAndCandle>>{
+        return stockDAO.getStockAndCandleData()
     }
 
     suspend fun updateAllFavourites() {
@@ -102,15 +105,20 @@ class StockRepository @Inject constructor(
         }
     }
 
-    suspend fun getSymbols(): List<String>{
-        return stockDAO.getSymbols()
-    }
-
     suspend fun insertCandleData(stock: CandleTable){
         stockDAO.insertCandleData(stock)
     }
 
-    fun getStockAndCandleData(): LiveData<List<StockAndCandle>>{
-        return stockDAO.getStockAndCandleData()
+    suspend fun updateCandleData(resolution: String, dayStart: String, dayEnd: String){
+        for (symbol in stockDAO.getSymbols()) {
+            val candleData = stockApi.getCandles(symbol, resolution, dayStart, dayEnd, key)
+            if (candleData.s.equals("ok")){
+                val stock = CandleTable(
+                    symbol,
+                    candleData.c
+                )
+                stockDAO.updateCandleData(stock)
+            }
+        }
     }
 }

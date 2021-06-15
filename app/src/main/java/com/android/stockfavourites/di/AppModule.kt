@@ -7,6 +7,7 @@ import com.android.stockfavourites.data.local.StockDAO
 import com.android.stockfavourites.data.local.StockDatabase
 import com.android.stockfavourites.data.StockRepository
 import com.android.stockfavourites.ui.main.RecyclerViewAdapter
+import com.android.stockfavourites.ui.main.SparkChartAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -89,6 +90,12 @@ object AppModule {
     //Recyclerview adapter dependency
     @Provides
     @Singleton
-    fun provideRecyclerViewAdapter(@ApplicationContext context: Context): RecyclerViewAdapter =
-        RecyclerViewAdapter(context)
+    fun provideRecyclerViewAdapter(@ApplicationContext context: Context, sparkChartAdapter: SparkChartAdapter): RecyclerViewAdapter =
+        RecyclerViewAdapter(context, sparkChartAdapter)
+
+    //SparkChart adapter dependency
+    @Provides
+    @Singleton
+    fun provideSparkChartAdapter(): SparkChartAdapter =
+        SparkChartAdapter()
 }
