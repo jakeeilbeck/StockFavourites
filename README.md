@@ -14,5 +14,6 @@ The project includes:
 * View binding
 * Swipe to delete
 * Autocomplete suggestions
+* [SparkLines](https://github.com/robinhood/spark)
 
-![Image of favourites list](https://i.imgur.com/FP842v9.png) ![Image of symbol autocomplete](https://i.imgur.com/NFVk3it.png)
+![Image of favourites list](https://i.imgur.com/YwEiikH.png) ![Image of symbol autocomplete](https://i.imgur.com/l4StI4C.png)
