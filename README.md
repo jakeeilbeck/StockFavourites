@@ -11,6 +11,7 @@ The project includes:
 * RecyclerView
 * ViewModel
 * LiveData
+* Flow
 * View binding
 * Swipe to delete
 * Autocomplete suggestions
